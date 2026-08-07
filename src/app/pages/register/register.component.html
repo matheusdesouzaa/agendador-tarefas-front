@@ -9,7 +9,7 @@
           <mat-label>Nome Completo</mat-label>
           <input
             matInput
-            formControlName="fullName"
+            formControlName="nome"
             placeholder="Digite o seu nome completo"
           />
           <mat-error>{{ fullNameError }}</mat-error>
@@ -32,10 +32,15 @@
       <button
         mat-raised-button
         class="full-width"
-        [disabled]="form.invalid"
+        [disabled]="form.invalid || isLoading"
         (click)="submit()"
       >
-        Cadastrar
+        <span class="cad-button-content">
+          {{ isLoading ? "Cadastrando..." : "Cadastrar" }}
+          @if (isLoading) {
+            <mat-spinner diameter="20"></mat-spinner>
+          }
+        </span>
       </button>
     </mat-card-actions>
   </mat-card>

@@ -1,4 +1,4 @@
-.register-component{
+.register-component {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -13,11 +13,20 @@
     background-color: #f5f5f5;
 }
 
-.register-component .mat-mdc-text-field-wrapper{
+.register-component .mat-mdc-text-field-wrapper {
     border-radius: 25px;
 
-    .mdc-line-ripple{
+    .mdc-line-ripple {
         display: none;
     }
 
+}
+
+.register-component .cad-button-content {
+    display: inline-flex;
+    align-items: center;
+
+    mat-spinner {
+        margin-left: 8px;
+    }
 }
