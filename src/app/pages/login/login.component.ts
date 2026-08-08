@@ -16,6 +16,7 @@ import {
 import { Router } from '@angular/router';
 import { UserLoginPayload, UserService } from '../../services/user.service';
 import { finalize } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -41,6 +42,7 @@ export class LoginComponent {
     private formBuilder: FormBuilder,
     private userService: UserService,
     private router: Router,
+    private authService: AuthService,
   ) {
     this.form = this.formBuilder.group({
       email: this.formBuilder.control('', {
@@ -81,6 +83,7 @@ export class LoginComponent {
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: (response) => {
+          this.authService.saveToken(response);
           this.router.navigate(['/']);
         },
         error: (error) => {
