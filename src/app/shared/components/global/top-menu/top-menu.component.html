@@ -8,7 +8,9 @@
   <a mat-button>Preços</a>
   <a mat-button>Contatos</a>
   <span class="spacer"></span>
-  <button mat-button>Entrar</button>
+  <button mat-button [disabled]="estaNaRotaLogin()" routerLink="/login">
+    Entrar
+  </button>
   <button
     mat-flat-button
     [disabled]="estaNaRotaRegister()"

@@ -6,20 +6,20 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { PasswordFieldComponent } from '../../shared/components/password-field/password-field.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
 import {
-  ReactiveFormsModule,
   FormBuilder,
-  FormGroup,
   FormControl,
+  FormGroup,
+  ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { UserService } from '../../services/user.service';
 import { Router } from '@angular/router';
+import { UserLoginPayload, UserService } from '../../services/user.service';
 import { finalize } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
-  selector: 'app-register',
+  selector: 'app-login',
   imports: [
     MatCardModule,
     MatButtonModule,
@@ -30,23 +30,29 @@ import { finalize } from 'rxjs';
     ReactiveFormsModule,
     MatProgressSpinnerModule,
   ],
-  templateUrl: './register.component.html',
-  styleUrl: './register.component.scss',
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.scss',
   encapsulation: ViewEncapsulation.None,
 })
-export class RegisterComponent {
-  form: FormGroup;
+export class LoginComponent {
+  form: FormGroup<{ email: FormControl<string>; senha: FormControl<string> }>;
   isLoading = false;
 
   constructor(
     private formBuilder: FormBuilder,
     private userService: UserService,
     private router: Router,
+    private authService: AuthService,
   ) {
     this.form = this.formBuilder.group({
-      nome: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', [Validators.required, Validators.email]],
-      senha: ['', [Validators.required, Validators.minLength(6)]],
+      email: this.formBuilder.control('', {
+        validators: [Validators.required, Validators.email],
+        nonNullable: true,
+      }),
+      senha: this.formBuilder.control('', {
+        validators: [Validators.required, Validators.minLength(6)],
+        nonNullable: true,
+      }),
     });
   }
 
@@ -54,19 +60,10 @@ export class RegisterComponent {
     return this.form.get('senha') as FormControl;
   }
 
-  get fullNameError(): string | null {
-    const fullNameControl = this.form.get('nome');
-    if (fullNameControl?.hasError('required'))
-      return 'O nome completo é obrigatório';
-    if (fullNameControl?.hasError('minlength'))
-      return 'Cadastre um nome com mais de 3 letras';
-    return null;
-  }
-
   get emailError(): string | null {
     const emailControl = this.form.get('email');
     if (emailControl?.hasError('required'))
-      return 'O cadastro de um email é obrigatório';
+      return 'A informação do email é obrigatória';
     if (emailControl?.hasError('email')) return 'Este email é inválido';
     return null;
   }
@@ -77,19 +74,20 @@ export class RegisterComponent {
       return;
     }
 
-    const formData = this.form.value;
+    const formData = this.form.value as UserLoginPayload;
 
     this.isLoading = true;
 
     this.userService
-      .register(formData)
+      .login(formData)
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: (response) => {
-          this.router.navigate(['/login']);
+          this.authService.saveToken(response);
+          this.router.navigate(['/']);
         },
         error: (error) => {
-          console.error(`erro ao registrar usuario`, error);
+          console.error(`erro ao entrar`, error);
         },
       });
   }
