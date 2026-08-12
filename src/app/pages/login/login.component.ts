@@ -90,7 +90,13 @@ export class LoginComponent {
       .subscribe({
         next: (response) => {
           this.authService.saveToken(response);
-          this.router.navigate(['/tasks']);
+          this.userService.getUserByEmail(response).subscribe({
+            next: (user) => {
+              this.authService.saveUser(user);
+              this.userService.user.set(user);
+              this.router.navigate(['/tasks']);
+            },
+          });
         },
         error: (error) => {
           console.error(`erro ao entrar`, error);
