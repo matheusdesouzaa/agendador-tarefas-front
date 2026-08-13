@@ -8,12 +8,16 @@ body {
     font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
+main {
+    min-height: 100vh;
+}
+
 .full-width {
     width: 100%;
 }
 
 .padding-p {
-    padding: 8px !important; 
+    padding: 8px !important;
 }
 
 .padding-m {
@@ -23,4 +27,3 @@ body {
 .padding-g {
     padding: 24px !important;
 }
-
