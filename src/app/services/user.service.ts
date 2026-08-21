@@ -1,6 +1,6 @@
 import { HttpClient, HttpHandler, HttpHeaders } from '@angular/common/http';
 import { Injectable, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, switchMap, tap } from 'rxjs';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { AuthService } from './auth.service';
 
@@ -28,27 +28,24 @@ interface UserRegisterPayload {
 
 export interface UserResponse {
   nome: string;
-  senha: string;
   email: string;
   enderecos:
-    | [
-        {
-          rua: string;
-          numero: number;
-          complemento: string;
-          cidade: string;
-          estado: string;
-          cep: string;
-        },
-      ]
+    | {
+        id: number;
+        rua: string;
+        numero: number;
+        complemento: string;
+        cidade: string;
+        estado: string;
+        cep: string;
+      }[]
     | null;
   telefones:
-    | [
-        {
-          numero: string;
-          ddd: string;
-        },
-      ]
+    | {
+        id: number;
+        numero: string;
+        ddd: string;
+      }[]
     | null;
 }
 
@@ -64,7 +61,8 @@ export class UserService {
   private apiUrl = 'http://localhost:8083';
   private jwtHelper = new JwtHelperService();
 
-  user = signal<UserResponse | null>(null);
+  private _user = signal<UserResponse | null>(null);
+  readonly user = this._user.asReadonly();
 
   constructor(
     private http: HttpClient,
@@ -72,7 +70,7 @@ export class UserService {
   ) {
     const usuarioSalvo = this.authService.getUser();
     if (usuarioSalvo) {
-      this.user.set(usuarioSalvo);
+      this.setUser(usuarioSalvo);
     }
   }
 
@@ -110,7 +108,102 @@ export class UserService {
     }
   }
 
+  saveTelefone(
+    body: { numero: string; ddd: string },
+    token: string,
+  ): Observable<any> {
+    const headers = new HttpHeaders({ Authorization: `${token}` });
+    return this.http
+      .post<UserResponse>(`${this.apiUrl}/usuario/telefone`, body, { headers })
+      .pipe(
+        switchMap(() => this.getUserByEmail(token)),
+        tap((user) => {
+          this.setUser(user);
+          this.authService.saveUser(user);
+        }),
+      );
+  }
+
+  getEnderecoByCep(cep: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/usuario/endereco/${cep}`);
+  }
+
+  saveEndereco(
+    body: {
+      rua: string;
+      numero: number;
+      complemento: string;
+      cidade: string;
+      estado: string;
+      cep: string;
+    },
+    token: string,
+  ): Observable<any> {
+    const headers = new HttpHeaders({
+      Authorization: `${token}`,
+    });
+
+    return this.http
+      .post<UserResponse>(`${this.apiUrl}/usuario/endereco`, body, { headers })
+      .pipe(
+        switchMap(() => this.getUserByEmail(token)),
+        tap((user) => {
+          this.setUser(user);
+          this.authService.saveUser(user);
+        }),
+      );
+  }
+
+  updateEndereco(
+    id: number,
+    body: {
+      rua: string;
+      numero: number;
+      complemento: string;
+      cidade: string;
+      estado: string;
+      cep: string;
+    },
+    token: string,
+  ): Observable<any> {
+    const headers = new HttpHeaders({ Authorization: `${token}` });
+    return this.http
+      .put<UserResponse>(`${this.apiUrl}/usuario/endereco?id=${id}`, body, {
+        headers,
+      })
+      .pipe(
+        switchMap(() => this.getUserByEmail(token)),
+        tap((user) => {
+          this.setUser(user);
+          this.authService.saveUser(user);
+        }),
+      );
+  }
+
+  updateTelefone(
+    id: number,
+    body: { numero: string; ddd: string },
+    token: string,
+  ): Observable<any> {
+    const headers = new HttpHeaders({ Authorization: `${token}` });
+    return this.http
+      .put<UserResponse>(`${this.apiUrl}/usuario/telefone?id=${id}`, body, {
+        headers,
+      })
+      .pipe(
+        switchMap(() => this.getUserByEmail(token)),
+        tap((user) => {
+          this.setUser(user);
+          this.authService.saveUser(user);
+        }),
+      );
+  }
+
   getUser(): UserResponse | null {
     return this.user();
+  }
+
+  setUser(data: UserResponse | null): void {
+    this._user.set(data);
   }
 }

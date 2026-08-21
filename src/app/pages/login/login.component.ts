@@ -93,7 +93,7 @@ export class LoginComponent {
           this.userService.getUserByEmail(response).subscribe({
             next: (user) => {
               this.authService.saveUser(user);
-              this.userService.user.set(user);
+              this.userService.setUser(user);
               this.router.navigate(['/tasks']);
             },
           });
