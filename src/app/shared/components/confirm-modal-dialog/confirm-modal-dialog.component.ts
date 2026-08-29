@@ -20,29 +20,17 @@ import {
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-
-export interface DialogField {
-  name: string;
-  label: string;
-  value?: string | number | Date;
-  button?: {
-    icon: string;
-    callback: (
-      value: string,
-      dialogRef: MatDialogRef<ModalDialogComponent>,
-    ) => void;
-  };
-  type?: 'text' | 'number' | 'date' | 'time' | 'datetime';
-  validators?: any[];
-}
+import { ModalDialogComponent } from '../modal-dialog/modal-dialog.component';
 
 interface DialogData {
   title: string;
-  formConfig: DialogField[];
+  message: string;
+  confirmButton: string;
+  cancelButton: string;
 }
 
 @Component({
-  selector: 'app-modal-dialog',
+  selector: 'app-confirm-modal-dialog',
   imports: [
     MatFormFieldModule,
     MatInputModule,
@@ -55,31 +43,15 @@ interface DialogData {
     MatTimepickerModule,
     MatDatepickerModule,
   ],
-  templateUrl: './modal-dialog.component.html',
-  styleUrl: './modal-dialog.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [provideNativeDateAdapter()],
+  templateUrl: './confirm-modal-dialog.component.html',
+  styleUrl: './confirm-modal-dialog.component.scss',
 })
-export class ModalDialogComponent {
-  readonly formBuilder = inject(FormBuilder);
-  readonly dialogRef = inject(MatDialogRef<ModalDialogComponent>);
+export class ConfirmModalDialogComponent {
+  readonly dialogRef = inject(MatDialogRef<ConfirmModalDialogComponent>);
   readonly data = inject<DialogData>(MAT_DIALOG_DATA);
 
-  fields: DialogField[] = this.data.formConfig;
-
-  private buildControls(): Record<string, any> {
-    const controls: Record<string, any> = {};
-
-    this.fields.forEach((field) => {
-      controls[field.name] = [field.value ?? '', field.validators || []];
-    });
-    return controls;
-  }
-
-  form: FormGroup = this.formBuilder.group(this.buildControls());
-
   onSave() {
-    this.dialogRef.close(this.form.value);
+    this.dialogRef.close(this.data);
   }
 
   onCancel(): void {

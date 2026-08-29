@@ -84,7 +84,7 @@ export class UserService {
     });
   }
 
-  getUserByEmail(token: string) {
+  getUserByEmail(token: string): Observable<UserResponse> {
     const email = this.getEmailFromToken(token);
 
     if (!email) throw new Error('Token invalido');
